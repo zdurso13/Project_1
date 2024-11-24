@@ -1,0 +1,230 @@
+---
+title: "Project_1"
+author: "Zachary D'Urso"
+date: "2024-11-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+Question Restated: 
+
+How can our company attract and retain top data science talent while battling the recession despite a highly competitive job market? What salary range should we offer for a full-time data scientist in the U.S. compared to offshore options?
+
+Alternative Questions: 
+
+What is a competitive salary range for data scientists at various experience levels?
+
+How do salaries for data scientists vary based on a company's size, location, and remote work ratio?
+
+What are the cost differences between hiring a U.S.-based data scientist versus an offshore data scientist with the same experience level?
+
+How might remote work impact data scientist salaries across offshore options?
+
+```{r}
+#file.choose() # find location of file
+
+library(tidyverse) # load library
+data <- read.csv("C:\\Users\\zdurs\\Downloads\\r project data.csv") # load/read dataset
+```
+
+```{r}
+data <- data %>% #create dataset
+  mutate(
+    experience_level = factor(experience_level, levels = c("EN", "MI", "SE", "EX")), #change variable to factor
+    employment_type = factor(employment_type, levels = c("PT", "FT", "CT", "FL")), #change variable to factor
+    remote_ratio = factor(remote_ratio, levels = c(0, 50, 100), labels = c("No Remote", "Partially Remote", "Fully Remote")), #change variable to factor
+    company_size = factor(company_size, levels = c("S", "M", "L")) #change variable to factor
+  )
+```
+
+
+```{r}
+colSums(is.na(data)) # check for NAs within each variable in the dataset
+```
+```{r}
+# Summary for the entire dataset
+summary(data)
+```
+
+
+```{r}
+# To examine each variable individually we can summarize like this
+summary(data$work_year)          # Years in the dataset; Years range from 2020-2022
+summary(data$experience_level)  # Counts for each experience level in the dataset; 4 types of experience level, SE has the highest count
+summary(data$employment_type)   # Counts for employment types; 4 types of employment type, FT has the highest count
+summary(data$salary)            # Range/distribution of salary; ranges from 4,000 to 30,400,000
+summary(data$salaryinusd)       # Range/distribution of salaries in USD; ranges from 2,859 to 600,000
+summary(data$employee_residence) # Distribution of employee residence
+summary(data$remote_ratio)      # Counts for remote work; 3 types of remote work, fully remote has the highest count
+summary(data$company_location)  # Distribution of company location
+summary(data$company_size)      # Company size; 3 types of company size; M has the highest count
+```
+
+```{r}
+# Count unique values for each variable (which type and how many of them for each variable)
+sapply(data, function(x) {
+  list(Variable_Type = class(x), Unique_Values = length(unique(x)))
+})
+```
+
+
+```{r}
+# Example tables: Frequency distribution for each variable
+table(data$company_size)
+table(data$remote_ratio)
+table(data$experience_level)
+table(data$work_year)
+table(data$employment_type)
+table(data$job_title)
+table(data$salary)
+table(data$salary_in_usd)
+table(data$salary_currency)
+table(data$employee_residence)
+table(data$company_location)
+```
+
+
+```{r}
+# Example plot
+library(ggplot2) #load libraries
+library(dplyr)
+ggplot(data, aes(x = salary_in_usd)) + #plot salary in USD
+  geom_histogram(bins = 40, fill = "green", alpha = 0.8) + #create a histogram
+  labs(title = "Distribution of Data Scientist Salaries in USD") #label the title
+```
+
+```{r}
+ggplot(data, aes(x = company_size)) +
+  geom_bar(fill = "blue", alpha = 0.9) +
+  labs(title = "Distribution of Company Sizes", x = "Company Size", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = factor(remote_ratio))) +
+  geom_bar(fill = "skyblue", alpha = 0.45) +
+  labs(title = "Distribution of Remote Work Levels", x = "Remote Ratio", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = work_year)) +
+  geom_bar(fill = "purple", alpha = 0.5) +
+  labs(title = "Frequency of Work Year", x = "Work Year", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = "", y = salary)) +
+  geom_boxplot(fill = "orange", alpha = 0.7) +
+  labs(title = "Salary Distribution", x = "", y = "Salary") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = salary_currency)) +
+  geom_bar(fill = "pink", alpha = 1.2) +
+  labs(title = "Distribution of Salary Currencies", x = "Currency", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+data %>%
+  count(employee_residence, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(employee_residence, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.9) +
+  coord_flip() + #flip axis
+  labs(title = "Top 10 Employee Residences", x = "Country", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+data %>%
+  count(job_title, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(job_title, n), y = n)) +
+  geom_bar(stat = "identity", fill = "brown", alpha = 0.75) +
+  coord_flip() +
+  labs(title = "Top 10 Job Titles", x = "Job Title", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = experience_level, fill = experience_level)) +
+  geom_bar() +
+  labs(title = "Frequency of Experience Levels")
+```
+
+```{r}
+data %>%
+  count(employment_type) %>%
+  ggplot(aes(x = employment_type, y = n, fill = employment_type)) +
+  geom_col(alpha = 0.97) + 
+  labs(
+    title = "Distribution of Employment Types",
+    x = "Employment Type",
+    y = "Count"
+  ) +
+  theme_minimal() 
+```
+
+
+```{r}
+# Salary for Data related positions based on Experience Level and Employee Residence
+summary_table <- data %>%
+  group_by(experience_level, employee_residence) %>%
+  summarise(
+    mean_salary = mean(salary_in_usd, na.rm = TRUE),
+    median_salary = median(salary_in_usd, na.rm = TRUE),
+    count = n()
+  )
+print(summary_table)
+```
+
+```{r}
+# U.S. versus Offshore Salary
+comparison_table <- data %>%
+  mutate(location_type = ifelse(employee_residence == "US", "US", "Offshore")) %>%
+  group_by(location_type) %>%
+  summarise(
+    mean_salary = mean(salary_in_usd, na.rm = TRUE),
+    median_salary = median(salary_in_usd, na.rm = TRUE),
+    count = n()
+  )
+print(comparison_table)
+```
+
+```{r}
+# Salary by Experience Level
+ggplot(data, aes(x = experience_level, y = salary_in_usd, fill = experience_level)) +
+  geom_boxplot() +
+  labs(title = "Salary by Experience Level", 
+       y = "Salary in USD", 
+       x = "Experience Level")
+```
+
+```{r}
+# The impact of Remote Work on Salary
+ggplot(data, aes(x = remote_ratio, y = salary_in_usd, fill = remote_ratio)) +
+  geom_boxplot() +
+  labs(title = "Impact of Remote Work on Salaries", y = "Salary in USD", x = "Remote Work Ratio")
+```
+
+Conclusion: 
+
+We can see that the salary for data related positions is rather high in the US when compared to outsourcing data professionals from offshore countries. For example, the mean annual salary of a data related position in the US is 149,194 dollars compared to the offshore mean annual salary of 67,754 dollars. This equals a savings of roughly 81,000 dollars per employee if an offshore employee is hired instead. Therefore to limit costs spent on hiring data scientists, hiring highly experienced data professionals from offshore locations should be utilized. This is important because our company can hire well-equipped data professionals for the job and we can pay them less than we would if they were from the US, as their expectations for pay are lower. Another important thing to note is that the salaries of entry-level employees are generally lower than those of mid-level and senior employees based on the data. You may want to cut costs, however, sacrificing experience level may impact the company’s overall efficiency. In this case, I believe that the best course of action would be to focus on hiring mid-level data professionals from offshore locations. This would allow the company to cut down on some costs while not overpaying a US employee with a significant amount of experience, and not sacrificing work quality by hiring only entry-level employees with minimal experience. The increase in salary on average from entry-level jobs to mid-level positions is much smaller than the jump from mid-level jobs to senior positions. Despite having slightly higher average annual salaries, senior level candidates are slightly less expensive as expert professionals. Finally, we must consider the impact of remote work on salaries. The average and the range of salaries for partially remote positions are the smallest, compared to the no remote work option salary which is slightly higher on average with a wider range, but the fully remote jobs have the highest average salary and generally have a higher range of salaries than partially remote and non-remote jobs. It makes most sense to hire a candidate that has mid-level to senior-level experience, works offshore, and as a result of working offshore that candidate works fully remote (relocation might require a higher salary).
